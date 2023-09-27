@@ -28,16 +28,20 @@ class LaplaceDistribution:
             return 1 - 0.5 * math.exp(-(x - self.loc) / self.scale)
 
     def ppf(self, p):
-        if p <= 0 or p >= 1:
+        if p < 0 or p > 1:
             raise ValueError("p must be between 0 and 1")
 
         if p < 0.5:
-            return self.loc - self.scale * math.log(1 - 2 * p)
+            return self.loc + self.scale * math.log(2 * p)
         else:
-            return self.loc + self.scale * math.log(2 * p - 1)
+            return self.loc - self.scale * math.log(2 - 2 * p)
 
     def gen_random(self):
-        return self.generate_sample()
+        u = self.rand.random()
+        if u < 0.5:
+            return self.loc + self.scale * (-(2 * u) ** 0.5)
+        else:
+            return self.loc - self.scale * (2 * (u - 0.5)) ** 0.5
 
     def mean(self):
         if self.scale == 0:
@@ -69,6 +73,7 @@ class LaplaceDistribution:
         kurtosis = self.ex_kurtosis()
 
         return [mean, variance, skewness, kurtosis]
+
 
 #2
 
@@ -154,5 +159,6 @@ class ParetoDistribution:
         ex_kurtosis = (fourth_moment / (variance ** 2))  # Számítsa ki a többlet csúcsosságot
 
         return [mean, variance, skewness, ex_kurtosis, third_moment, fourth_moment]
+
 
 
