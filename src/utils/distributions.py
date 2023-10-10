@@ -60,29 +60,19 @@ class LogisticDistribution:
         return 0.0  # A logisztikus eloszlás ferdesége mindig 0, nem szükséges számítani
 
     def ex_kurtosis(self):
-        if self.scale <= 0:
-            raise Exception("Moment undefined")
-
-        n = 4  # A kurtózis számításához a negyedik hatványt használjuk
-        mean = self.mean()
-        fourth_moment = sum([(x - mean) ** n for x in [self.gen_rand() for _ in range(n)]]) / n
-        variance = self.variance()
-        ex_kurtosis = (fourth_moment / (variance ** 2)) - 3
-        return ex_kurtosis
+        return 1.2
 
     def mvsk(self):
-        if self.scale <= 0:
-            raise Exception("Moment undefined")
-        mean = self.mean
-        variance = self.variance
-        skewness = 0.0
-        ex_kurtosis = self.ex_kurtosis
-
-        return [mean, variance, skewness, ex_kurtosis]
+        mean = self.mean()
+        variance = self.variance()
+        skewness = self.skewness()
+        excess_kurtosis = self.ex_kurtosis()
+        return [mean, variance, skewness, excess_kurtosis]
 
 #2 ChiSquaredDistribution
 
 import random
+import typing
 import math
 import scipy.special as sp
 
@@ -118,10 +108,10 @@ class ChiSquaredDistribution:
         return ppf_value
 
     def gen_rand(self):
-        # Logisztikus eloszlás generálása
-        u = self.rand.random()  # Véletlen szám [0, 1) tartományban
-        rand_value = self.dof / (-math.log(1 - u))
-        return rand_value
+        # Generate a random number using a method of your choice
+        # For example, you can use the inverse transform sampling method
+        u = self.rand.random()
+        return self.ppf(u)
 
     def mean(self):
         if self.dof <= 0:
