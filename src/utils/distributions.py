@@ -84,7 +84,7 @@ class LogisticDistribution:
 
 import random
 import math
-import scipy.stats as stats
+import scipy.special as sp
 
 
 class ChiSquaredDistribution:
@@ -98,23 +98,23 @@ class ChiSquaredDistribution:
 
         # A Chi-négyzet eloszlás sűrűségfüggvényének számítása
         numerator = x ** ((self.dof / 2) - 1) * math.exp(-x / 2)
-        denominator = (2 ** (self.dof / 2)) * math.gamma(self.dof / 2)
+        denominator = (2 ** (self.dof / 2)) * sp.gamma(self.dof / 2)
         return numerator / denominator
 
     def cdf(self, x):
         if x < 0:
-            return 0.0  # A kumulatív eloszlásfüggvény nulla negatív értékeken
+            return 0.0
 
-        cdf_value = stats.chi2.cdf(x,
-                                   df=self.dof)  # A SciPy könyvtár használata a kumulatív eloszlásfüggvény kiszámításához
+        cdf_value = sp.gammainc(self.dof / 2,
+                                x / 2)
         return cdf_value
 
     def ppf(self, p):
         if p < 0 or p > 1:
             raise ValueError("Az 'p' értéke 0 és 1 között kell legyen.")
 
-        ppf_value = stats.chi2.ppf(p,
-                                   df=self.dof)  # A SciPy könyvtár használata az inverz kumulatív eloszlásfüggvény kiszámításához
+        ppf_value = 2 * sp.gammaincinv(self.dof / 2,
+                                       p)
         return ppf_value
 
     def gen_rand(self):
