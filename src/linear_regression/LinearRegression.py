@@ -1,29 +1,3 @@
-import pandas as pd
-
-#1
-returns_df = pd.read_parquet('sp500.parquet', engine='fastparquet')
-
-#2
-factors_df = pd.read_parquet('ff_factors.parquet', engine='fastparquet')
-
-#3
-merged_df = returns_df.merge(factors_df, on='Date', how='left')
-
-#4
-merged_df['Excess Return'] = merged_df['Return'] - merged_df['RF']
-
-#5
-merged_df = merged_df.sort_values(by='Date')
-merged_df['ex_ret_1'] = merged_df.groupby('Symbol')['Excess Return'].shift(-1)
-
-#6
-merged_df = merged_df.dropna(subset=['ex_ret_1'])
-merged_df = merged_df.dropna(subset=['HML'])
-
-amazon_df = merged_df[merged_df['Symbol'] == 'AMZN']
-amazon_df = amazon_df.drop(columns='Symbol')
-
-#7-12
 import numpy as np
 from scipy.stats import t
 class LinearRegressionNP:
