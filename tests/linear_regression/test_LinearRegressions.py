@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 from pytest import approx
 
-from src.linear_regression.LinearRegressions import (
+from src.linear_regression.LinearRegressions2 import (
     LinearRegressionSM,
     LinearRegressionNP,
 )
