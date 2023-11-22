@@ -1,3 +1,15 @@
+
+class LogisticDistribution:
+    def __init__(self, rand, loc, scale):
+        self.rand = rand
+        self.loc = loc
+        self.scale = scale
+
+    def ex_kurtosis(self):
+        if self.scale <= 0:
+            raise Exception("Moment undefined")
+        return 24 / 5  # A logisztikus eloszlás többlet csúcsossága mindig 24/5, nem szükséges számítani
+
 #1
 def evens_from_list(input_list):
     even_elements = [x for x in input_list if x % 2 == 0]

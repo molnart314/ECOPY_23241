@@ -3,7 +3,6 @@
 import random
 import math
 
-
 class LaplaceDistribution:
     def __init__(self, rand, loc, scale):
         self.rand = rand
@@ -36,7 +35,7 @@ class LaplaceDistribution:
         else:
             return self.loc - self.scale * math.log(2 - 2 * p)
 
-    def gen_random(self):
+    def gen_rand(self):
         u = self.rand.random()
         if u < 0.5:
             return self.loc + self.scale * (-(2 * u) ** 0.5)
@@ -73,6 +72,9 @@ class LaplaceDistribution:
         kurtosis = self.ex_kurtosis()
 
         return [mean, variance, skewness, kurtosis]
+
+
+
 
 
 #2
@@ -143,22 +145,15 @@ class ParetoDistribution:
         return numerator / denominator
 
     def mvsk(self):
-        if self.shape <= 4.0:
+        if self.scale == 0:
             raise Exception("Moment undefined")
 
         mean = self.mean()
         variance = self.variance()
+        skewness = self.skewness()
+        kurtosis = self.ex_kurtosis()
 
-        third_moment = (self.shape * (self.scale ** 3) * (self.shape + 1) * (self.shape + 2)) / (
-                (self.shape - 3) * (self.shape - 2) * (self.shape - 1))
-
-        fourth_moment = (self.shape * (self.scale ** 4) * (self.shape + 1) * (self.shape + 2)) / (
-                (self.shape - 3) * (self.shape - 2) * (self.shape - 1))
-
-        skewness = (third_moment / (variance ** 1.5))  # Számítsa ki a ferdeséget
-        ex_kurtosis = (fourth_moment / (variance ** 2))  # Számítsa ki a többlet csúcsosságot
-
-        return [mean, variance, skewness, ex_kurtosis, third_moment, fourth_moment]
+        return [mean, variance, skewness, kurtosis]
 
 
 
