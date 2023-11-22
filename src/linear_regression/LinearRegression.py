@@ -138,3 +138,83 @@ class LinearRegressionGLS:
         r2 = 1 - SSE / SST
         adj_r2 = 1 - ((self.n - 1) / self.df * (1 - r2))
         return f'Centered R-squared: {r2:.3f}, Adjusted R-squared: {adj_r2:.3f}'
+
+#######################################
+
+import pandas as pd
+import numpy as np
+from scipy.optimize import minimize
+
+class LinearRegressionML:
+    def __init__(self, left_hand_side, right_hand_side):
+        if not isinstance(left_hand_side, pd.DataFrame) or not isinstance(right_hand_side, pd.DataFrame):
+            raise ValueError("Both inputs should be DataFrames.")
+
+        self.left_hand_side = left_hand_side
+        self.right_hand_side = right_hand_side
+        self.beta = None
+
+    def fit(self):
+        n_predictors = self.right_hand_side.shape[1]
+        initial_params = np.full(n_predictors + 2, 0.1)  # Setting initial values to 0.1 for all parameters
+        result = minimize(self._negative_log_likelihood, initial_params, method='L-BFGS-B')
+
+        if result.success:
+            self.beta = result.x[1:]
+            self._correct_mle_variance(result.hess_inv)
+        else:
+            raise ValueError("Optimization did not converge. Please check your input data.")
+
+    def _negative_log_likelihood(self, params):
+        alpha = params[0]
+        beta = params[1:]
+        y = self.left_hand_side.values
+        X = np.column_stack((np.ones(len(self.left_hand_side)), self.right_hand_side.values))
+        epsilon = y - X @ beta - alpha
+        neg_log_likelihood = 0.5 * np.sum(epsilon ** 2)
+        return neg_log_likelihood
+
+    def _correct_mle_variance(self, hessian_inv):
+        n, k = self.right_hand_side.shape[0], self.right_hand_side.shape[1]
+        sigma_squared = np.sum((self.left_hand_side - self.right_hand_side @ self.beta) ** 2) / (n - k)
+        cov_matrix = hessian_inv * sigma_squared
+        std_errors = np.sqrt(np.diag(cov_matrix))
+        self.std_errors = std_errors
+
+    def get_params(self):
+        if not hasattr(self, 'beta'):
+            raise ValueError("Model parameters have not been estimated. Please call fit() first.")
+        params_with_alpha = [np.nan] + list(self.beta)
+        return pd.Series(params_with_alpha, name='Beta coefficients')
+
+    def get_pvalues(self):
+        if not hasattr(self, 'beta'):
+            raise ValueError("Model parameters have not been estimated. Please call fit() first.")
+
+        n, k = self.right_hand_side.shape[0], self.right_hand_side.shape[1]
+        dof = n - k
+        residuals = self.left_hand_side - self.right_hand_side @ self.beta
+        mse = np.sum(residuals ** 2) / dof
+        t_values = self.beta / np.sqrt(np.diag(np.linalg.inv(self.right_hand_side.T @ self.right_hand_side) * mse))
+        p_values = np.min(np.array([min(t.cdf(tv, dof), 1 - t.cdf(tv, dof)) * 2 for tv in np.abs(t_values)]), axis=0)
+
+        return pd.Series(p_values, name='P-values for the corresponding coefficients')
+
+    def get_model_goodness_values(self):
+        if not hasattr(self, 'beta'):
+            raise ValueError("Model parameters have not been estimated. Please call fit() first.")
+
+        n, k = self.right_hand_side.shape[0], self.right_hand_side.shape[1]
+
+        y_mean = self.left_hand_side.mean().values
+        y_hat = self.right_hand_side @ self.beta
+        rss = np.sum((self.left_hand_side - y_hat) ** 2)
+        tss = np.sum((self.left_hand_side - y_mean) ** 2)
+        crs = 1 - rss / tss
+
+        if k > 1:
+            ars = 1 - (rss / (n - k)) / (tss / (n - 1))
+        else:
+            ars = crs
+
+        return f"Centered R-squared: {crs:.3f}, Adjusted R-squared: {ars:.3f}"
