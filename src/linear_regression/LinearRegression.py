@@ -156,7 +156,7 @@ class LinearRegressionML:
 
     def fit(self):
         n_predictors = self.right_hand_side.shape[1]
-        initial_params = np.full(n_predictors + 2, 0.1)  # Setting initial values to 0.1 for all parameters
+        initial_params = np.full(n_predictors + 2, 0.1)
         result = minimize(self._negative_log_likelihood, initial_params, method='L-BFGS-B')
 
         if result.success:
